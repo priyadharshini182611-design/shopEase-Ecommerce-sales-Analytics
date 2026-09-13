@@ -16,178 +16,119 @@ SALES_FILE = os.path.join(DATA_DIR, "sales_data.csv")
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
-
-# =========================
-# STYLE
-# =========================
-
 st.markdown("""
 <style>
-
-.shop-title {
-    font-size: 38px;
-    font-weight: bold;
-    color: #111111 !important;
+.main {
+    background-color: #fafafa;
 }
 
-.shop-subtitle {
-    font-size: 18px;
-    color: #444444 !important;
+.store-banner {
+    padding: 22px;
+    border-radius: 15px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.store-banner h1 {
+    margin-bottom: 5px;
+}
+
+.store-banner p {
+    margin-top: 0;
+    color: #666666;
 }
 
 .product-card {
-    padding: 20px;
-    border: 1px solid #dddddd;
+    padding: 18px;
+    border: 1px solid #e5e5e5;
     border-radius: 15px;
-    background-color: #ffffff;
-    margin-bottom: 10px;
+    background: white;
+    margin-bottom: 12px;
 }
 
-.product-icon {
-    font-size: 75px;
-    text-align: center;
-    padding: 15px;
+div.stButton > button {
+    border-radius: 10px;
+    font-weight: 600;
 }
 
-.product-name {
-    color: #111111 !important;
-    font-size: 21px;
-    font-weight: 700;
+div[data-testid="stMetric"] {
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 12px;
+    background: white;
 }
-
-.product-category {
-    color: #333333 !important;
-    font-size: 15px;
-}
-
-.product-description {
-    color: #333333 !important;
-    font-size: 15px;
-}
-
-.price {
-    color: #111111 !important;
-    font-size: 21px;
-    font-weight: bold;
-}
-
-.banner {
-    padding: 25px;
-    border-radius: 15px;
-    background-color: #f5f5f5;
-}
-
-.banner h1 {
-    color: #111111 !important;
-}
-
-.banner p {
-    color: #333333 !important;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
-
-# =========================
-# PRODUCTS
-# =========================
-
 products = [
-
     {
         "id": 1,
-        "name": "Elegant Silk Saree",
+        "name": "Designer Saree",
         "category": "Sarees",
-        "price": 899,
-        "icon": "👗",
-        "description": "Beautiful traditional silk saree suitable for special occasions."
+        "price": 799,
+        "description": "Beautiful designer saree for everyday and special occasions."
     },
-
     {
         "id": 2,
-        "name": "Designer Handbag",
+        "name": "Ladies Handbag",
         "category": "Bags",
         "price": 599,
-        "icon": "👜",
-        "description": "Stylish and spacious handbag for everyday use."
+        "description": "Stylish and spacious handbag for daily use."
     },
-
     {
         "id": 3,
-        "name": "Printed Cotton Kurti",
+        "name": "Cotton Kurti",
         "category": "Kurtis",
-        "price": 499,
-        "icon": "👚",
-        "description": "Comfortable printed cotton kurti with a modern design."
+        "price": 699,
+        "description": "Comfortable cotton kurti with a simple modern design."
     },
-
     {
         "id": 4,
-        "name": "Party Wear Saree",
+        "name": "Printed Saree",
         "category": "Sarees",
-        "price": 1099,
-        "icon": "🥻",
-        "description": "Trendy party wear saree with an elegant look."
+        "price": 899,
+        "description": "Trendy printed saree with an elegant design."
     },
-
     {
         "id": 5,
-        "name": "Casual Shoulder Bag",
+        "name": "Fashion Handbag",
         "category": "Bags",
-        "price": 449,
-        "icon": "🎒",
-        "description": "Compact shoulder bag perfect for casual outings."
+        "price": 749,
+        "description": "Modern handbag suitable for casual and office use."
     },
-
     {
         "id": 6,
-        "name": "Floral Kurti",
+        "name": "Casual Kurti",
         "category": "Kurtis",
         "price": 549,
-        "icon": "👕",
-        "description": "Comfortable floral kurti for daily and casual wear."
+        "description": "Soft and comfortable kurti for daily wear."
     }
-
 ]
 
+defaults = {
+    "page": "Home",
+    "cart": [],
+    "wishlist": [],
+    "selected_product": None
+}
 
-# =========================
-# SESSION STATE
-# =========================
-
-if "cart" not in st.session_state:
-    st.session_state.cart = []
-
-if "wishlist" not in st.session_state:
-    st.session_state.wishlist = []
-
-if "page" not in st.session_state:
-    st.session_state.page = "Home"
-
-if "selected_product" not in st.session_state:
-    st.session_state.selected_product = None
+for key, value in defaults.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
 
 
-# =========================
-# SAVE ORDER
-# =========================
+def save_order(name, phone, address, cart):
+    new_file = not os.path.exists(SALES_FILE)
 
-def save_order(order):
+    order_id = datetime.now().strftime("%Y%m%d%H%M%S%f")
+    date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    file_exists = os.path.exists(SALES_FILE)
+    with open(SALES_FILE, "a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
 
-    with open(
-        SALES_FILE,
-        "a",
-        newline="",
-        encoding="utf-8"
-    ) as file:
-
-        writer = csv.writer(file)
-
-        if not file_exists:
-
+        if new_file:
             writer.writerow([
                 "Order ID",
                 "Date",
@@ -198,255 +139,141 @@ def save_order(order):
                 "Category",
                 "Price",
                 "Quantity",
-                "Total"
+                "Amount"
             ])
 
-        writer.writerow([
-            str(order["order_id"]),
-            order["date"],
-            order["customer"],
-            order["phone"],
-            order["address"],
-            order["product"],
-            order["category"],
-            order["price"],
-            order["quantity"],
-            order["total"]
-        ])
+        for item in cart:
+            product = item["product"]
+            quantity = item["quantity"]
+
+            writer.writerow([
+                order_id,
+                date,
+                name,
+                phone,
+                address,
+                product["name"],
+                product["category"],
+                product["price"],
+                quantity,
+                product["price"] * quantity
+            ])
 
 
-# =========================
-# HEADER
-# =========================
-
-st.markdown(
-    '<div class="shop-title">🛍️ ShopEase</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<div class="shop-subtitle">Smart E-Commerce Store with Python Sales Analytics</div>',
-    unsafe_allow_html=True
-)
-
-
-# =========================
-# SEARCH
-# =========================
+st.markdown("""
+<div class="store-banner">
+    <h1>🛍️ ShopEase</h1>
+    <p>Smart E-Commerce Store with Python Sales Analytics</p>
+</div>
+""", unsafe_allow_html=True)
 
 search = st.text_input(
     "🔍 Search Products",
     placeholder="Search for saree, bag, kurti..."
 )
 
+nav = st.columns(5)
 
-# =========================
-# NAVIGATION
-# =========================
+nav_items = [
+    ("🏠 Home", "Home"),
+    ("🛒 Cart", "Cart"),
+    ("❤️ Wishlist", "Wishlist"),
+    ("📦 Orders", "Orders"),
+    ("📊 Analytics", "Analytics")
+]
 
-nav = st.columns(7)
-
-with nav[0]:
-
-    if st.button("🏠 Home", use_container_width=True):
-        st.session_state.page = "Home"
-
-with nav[1]:
-
-    if st.button("👗 Sarees", use_container_width=True):
-        st.session_state.page = "Sarees"
-
-with nav[2]:
-
-    if st.button("👜 Bags", use_container_width=True):
-        st.session_state.page = "Bags"
-
-with nav[3]:
-
-    if st.button("👚 Kurtis", use_container_width=True):
-        st.session_state.page = "Kurtis"
-
-with nav[4]:
-
-    if st.button("🛒 Cart", use_container_width=True):
-        st.session_state.page = "Cart"
-
-with nav[5]:
-
-    if st.button("❤️ Wishlist", use_container_width=True):
-        st.session_state.page = "Wishlist"
-
-with nav[6]:
-
-    if st.button("📦 Orders", use_container_width=True):
-        st.session_state.page = "Orders"
-
+for col, (label, page) in zip(nav, nav_items):
+    with col:
+        if st.button(label, use_container_width=True):
+            st.session_state.page = page
+            st.rerun()
 
 st.divider()
+# =========================================================
+# HOME
+# =========================================================
 
+if st.session_state.page == "Home":
 
-# =========================
-# SHOW PRODUCTS
-# =========================
+    st.subheader("🛍️ Shop by Category")
 
-def show_products(product_list):
+    category_cols = st.columns(3)
+
+    for col, label, category in zip(
+        category_cols,
+        ["👗 Sarees", "👜 Bags", "👚 Kurtis"],
+        ["Sarees", "Bags", "Kurtis"]
+    ):
+        with col:
+            if st.button(label, use_container_width=True):
+                st.session_state.page = category
+                st.rerun()
+
+    st.divider()
+
+    shown_products = products
 
     if search:
+        search_text = search.lower()
 
-        product_list = [
-
-            p for p in product_list
-
-            if search.lower() in p["name"].lower()
-            or search.lower() in p["category"].lower()
-
+        shown_products = [
+            product
+            for product in products
+            if search_text in product["name"].lower()
+            or search_text in product["category"].lower()
         ]
 
-    if not product_list:
+    st.subheader("⭐ Featured Products")
 
+    if not shown_products:
         st.warning("No products found.")
 
-        return
-
-
-    for i in range(0, len(product_list), 3):
+    for i in range(0, len(shown_products), 3):
 
         cols = st.columns(3)
 
-
-        for col, p in zip(
+        for col, product in zip(
             cols,
-            product_list[i:i + 3]
+            shown_products[i:i + 3]
         ):
 
             with col:
 
-                # Emoji only
+                icon = (
+                    "👗"
+                    if product["category"] == "Sarees"
+                    else "👜"
+                    if product["category"] == "Bags"
+                    else "👚"
+                )
+
                 st.markdown(
                     f"""
                     <div class="product-card">
-                        <div class="product-icon">
-                            {p["icon"]}
-                        </div>
+                        <h1 style="text-align:center;">
+                            {icon}
+                        </h1>
+                        <h3>{product['name']}</h3>
+                        <p>{product['description']}</p>
+                        <h3>💰 ₹{product['price']}</h3>
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
 
-
-                # Product Name
-                st.markdown(
-                    f"""
-                    <div class="product-name">
-                        {p["name"]}
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
+                if st.button(
+                    "View Product",
+                    key=f"home_{product['id']}",
+                    use_container_width=True
+                ):
+                    st.session_state.selected_product = product
+                    st.session_state.page = "Product"
+                    st.rerun()
 
 
-                # Category
-                st.markdown(
-                    f"""
-                    <div class="product-category">
-                        Category: {p["category"]}
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-
-                # Price
-                st.markdown(
-                    f"""
-                    <div class="price">
-                        ₹{p["price"]}
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-
-                # Description
-                st.markdown(
-                    f"""
-                    <div class="product-description">
-                        {p["description"]}
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-
-                c1, c2 = st.columns(2)
-
-
-                with c1:
-
-                    if st.button(
-                        "View Product",
-                        key=f"view_{p['id']}",
-                        use_container_width=True
-                    ):
-
-                        st.session_state.selected_product = p
-
-                        st.session_state.page = "Product"
-
-
-                with c2:
-
-                    if st.button(
-                        "Add 🛒",
-                        key=f"add_{p['id']}",
-                        use_container_width=True
-                    ):
-
-                        st.session_state.cart.append({
-                            "product": p,
-                            "quantity": 1
-                        })
-
-                        st.success(
-                            "Added to cart!"
-                        )
-
-
-# =========================
-# HOME
-# =========================
-
-if st.session_state.page == "Home":
-
-    st.markdown(
-        """
-        <div class="banner">
-
-            <h1>
-                Welcome to ShopEase 🛍️
-            </h1>
-
-            <p>
-                Discover stylish sarees, trendy bags
-                and beautiful kurtis at affordable prices.
-            </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-    st.subheader(
-        "✨ Featured Products"
-    )
-
-    show_products(products)
-
-
-# =========================
-# CATEGORY
-# =========================
+# =========================================================
+# CATEGORY PAGES
+# =========================================================
 
 elif st.session_state.page in [
     "Sarees",
@@ -456,129 +283,161 @@ elif st.session_state.page in [
 
     category = st.session_state.page
 
-    st.title(
-        f"{category} Collection"
-    )
-
+    st.subheader(f"{category} Collection")
 
     category_products = [
-
-        p for p in products
-
-        if p["category"] == category
-
+        product
+        for product in products
+        if product["category"] == category
     ]
 
+    for product in category_products:
 
-    show_products(
-        category_products
-    )
+        c1, c2 = st.columns([1, 2])
+
+        with c1:
+
+            icon = (
+                "👗"
+                if category == "Sarees"
+                else "👜"
+                if category == "Bags"
+                else "👚"
+            )
+
+            st.markdown(
+                f"""
+                <div class="product-card"
+                     style="text-align:center;">
+                    <h1 style="font-size:70px;">
+                        {icon}
+                    </h1>
+                    <h3>{product['category']}</h3>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with c2:
+
+            st.markdown(
+                f"### {product['name']}"
+            )
+
+            st.write(product["description"])
+
+            st.write(
+                f"💰 **₹{product['price']}**"
+            )
+
+            if st.button(
+                "View Product",
+                key=f"category_{product['id']}"
+            ):
+
+                st.session_state.selected_product = product
+                st.session_state.page = "Product"
+                st.rerun()
+
+        st.divider()
 
 
-# =========================
+# =========================================================
 # PRODUCT DETAILS
-# =========================
+# =========================================================
 
 elif st.session_state.page == "Product":
 
-    p = st.session_state.selected_product
+    product = st.session_state.selected_product
 
+    if product:
 
-    if p:
-
-        st.title(
-            p["name"]
-        )
-
-
-        st.markdown(
-            f"""
-            <div class="product-icon">
-                {p["icon"]}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-        st.markdown(
-            f"""
-            <div class="product-name">
-                {p["name"]}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-        st.markdown(
-            f"""
-            <div class="product-category">
-                Category: {p["category"]}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-        st.markdown(
-            f"""
-            <div class="price">
-                ₹{p["price"]}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-        st.markdown(
-            f"""
-            <div class="product-description">
-                {p["description"]}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-        st.write("### Product Features")
-
-        st.write("✔ Good quality product")
-        st.write("✔ Affordable price")
-        st.write("✔ Suitable for everyday use")
-        st.write("✔ Easy online ordering")
-
-
-        c1, c2, c3 = st.columns(3)
-
+        c1, c2 = st.columns(2)
 
         with c1:
+
+            icon = (
+                "👗"
+                if product["category"] == "Sarees"
+                else "👜"
+                if product["category"] == "Bags"
+                else "👚"
+            )
+
+            st.markdown(
+                f"""
+                <div class="product-card"
+                     style="text-align:center;">
+                    <h1 style="font-size:120px;">
+                        {icon}
+                    </h1>
+                    <h2>{product['category']}</h2>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with c2:
+
+            st.subheader(product["name"])
+
+            st.write(
+                f"## 💰 ₹{product['price']}"
+            )
+
+            st.write(
+                f"**Category:** {product['category']}"
+            )
+
+            st.write(product["description"])
+
+            st.divider()
 
             if st.button(
                 "🛒 Add to Cart",
                 use_container_width=True
             ):
 
-                st.session_state.cart.append({
-                    "product": p,
-                    "quantity": 1
-                })
+                found = next(
+                    (
+                        item
+                        for item in st.session_state.cart
+                        if item["product"]["id"]
+                        == product["id"]
+                    ),
+                    None
+                )
+
+                if found:
+                    found["quantity"] += 1
+
+                else:
+                    st.session_state.cart.append(
+                        {
+                            "product": product,
+                            "quantity": 1
+                        }
+                    )
 
                 st.success(
                     "Product added to cart!"
                 )
 
-
-        with c2:
-
             if st.button(
-                "❤️ Wishlist",
+                "❤️ Add to Wishlist",
                 use_container_width=True
             ):
 
-                if p not in st.session_state.wishlist:
+                already_exists = any(
+                    item["id"] == product["id"]
+                    for item in st.session_state.wishlist
+                )
 
-                    st.session_state.wishlist.append(p)
+                if not already_exists:
+
+                    st.session_state.wishlist.append(
+                        product
+                    )
 
                     st.success(
                         "Added to wishlist!"
@@ -587,11 +446,8 @@ elif st.session_state.page == "Product":
                 else:
 
                     st.info(
-                        "Already in wishlist!"
+                        "Product already in wishlist."
                     )
-
-
-        with c3:
 
             if st.button(
                 "⬅️ Back to Home",
@@ -599,294 +455,192 @@ elif st.session_state.page == "Product":
             ):
 
                 st.session_state.page = "Home"
-
-
-# =========================
+                st.rerun()
+                # =========================================================
 # CART
-# =========================
+# =========================================================
 
 elif st.session_state.page == "Cart":
 
-    st.title("🛒 Shopping Cart")
-
+    st.subheader("🛒 My Cart")
 
     if not st.session_state.cart:
 
-        st.info(
-            "Your cart is empty."
-        )
-
-
-        if st.button(
-            "🛍️ Continue Shopping"
-        ):
-
-            st.session_state.page = "Home"
-
+        st.info("Your cart is empty.")
 
     else:
 
-        grand_total = 0
+        total = 0
 
+        for i, item in enumerate(st.session_state.cart):
 
-        for index, item in enumerate(
-            st.session_state.cart
-        ):
-
-            p = item["product"]
-
+            product = item["product"]
             quantity = item["quantity"]
 
-            item_total = (
-                p["price"] * quantity
-            )
+            c1, c2, c3 = st.columns([1, 2, 2])
 
+            with c1:
 
-            grand_total += item_total
-
-
-            col1, col2, col3, col4 = st.columns(
-                [3, 1, 1, 1]
-            )
-
-
-            with col1:
+                icon = (
+                    "👗"
+                    if product["category"] == "Sarees"
+                    else "👜"
+                    if product["category"] == "Bags"
+                    else "👚"
+                )
 
                 st.markdown(
-                    f"""
-                    <div class="product-name">
-                        {p["icon"]} {p["name"]}
-                    </div>
-                    """,
+                    f"<h1 style='text-align:center'>{icon}</h1>",
                     unsafe_allow_html=True
                 )
 
+            with c2:
+
+                st.write(f"### {product['name']}")
+                st.write(f"₹{product['price']}")
                 st.write(
-                    f"₹{p['price']} × {quantity}"
+                    f"Quantity: **{quantity}**"
                 )
 
+            with c3:
 
-            with col2:
+                a, b, c = st.columns(3)
 
-                if st.button(
-                    "➖",
-                    key=f"minus_{index}"
-                ):
+                with a:
 
-                    if item["quantity"] > 1:
+                    if st.button(
+                        "➕",
+                        key=f"plus_{i}"
+                    ):
 
-                        item["quantity"] -= 1
+                        item["quantity"] += 1
+                        st.rerun()
 
-                    else:
+                with b:
 
-                        st.session_state.cart.pop(
-                            index
-                        )
+                    if st.button(
+                        "➖",
+                        key=f"minus_{i}"
+                    ):
 
-                    st.rerun()
+                        if item["quantity"] > 1:
+                            item["quantity"] -= 1
 
+                        st.rerun()
 
-            with col3:
+                with c:
 
-                st.write(
-                    f"Qty: {quantity}"
-                )
+                    if st.button(
+                        "❌",
+                        key=f"remove_{i}"
+                    ):
 
+                        st.session_state.cart.pop(i)
+                        st.rerun()
 
-                if st.button(
-                    "➕",
-                    key=f"plus_{index}"
-                ):
-
-                    item["quantity"] += 1
-
-                    st.rerun()
-
-
-            with col4:
-
-                st.write(
-                    f"₹{item_total}"
-                )
-
-
-                if st.button(
-                    "🗑️ Remove",
-                    key=f"remove_{index}"
-                ):
-
-                    st.session_state.cart.pop(
-                        index
-                    )
-
-                    st.rerun()
-
+            total += product["price"] * quantity
 
             st.divider()
 
-
         st.subheader(
-            f"Grand Total: ₹{grand_total}"
+            f"Total Amount: ₹{total}"
         )
 
-
         if st.button(
-            "💳 Proceed to Checkout",
+            "✅ Proceed to Checkout",
             use_container_width=True
         ):
 
             st.session_state.page = "Checkout"
+            st.rerun()
 
 
-# =========================
+# =========================================================
 # CHECKOUT
-# =========================
+# =========================================================
 
 elif st.session_state.page == "Checkout":
 
-    st.title("💳 Checkout")
-
+    st.subheader("🧾 Checkout")
 
     if not st.session_state.cart:
 
-        st.warning(
-            "Your cart is empty."
-        )
-
+        st.warning("Your cart is empty.")
 
     else:
 
+        total = sum(
+            item["product"]["price"]
+            * item["quantity"]
+            for item in st.session_state.cart
+        )
+
+        st.write("### 🛍️ Order Summary")
+
+        for item in st.session_state.cart:
+
+            product = item["product"]
+            quantity = item["quantity"]
+
+            st.write(
+                f"**{product['name']}** × {quantity} "
+                f"= ₹{product['price'] * quantity}"
+            )
+
+        st.divider()
+
         st.subheader(
-            "Customer Details"
+            f"Total: ₹{total}"
         )
 
+        st.write("### Delivery Details")
 
-        customer_name = st.text_input(
-            "Full Name"
+        name = st.text_input(
+            "Customer Name"
         )
-
 
         phone = st.text_input(
             "Phone Number"
         )
 
-
         address = st.text_area(
             "Delivery Address"
         )
 
-
-        st.subheader(
-            "Order Summary"
-        )
-
-
-        checkout_total = 0
-
-
-        for item in st.session_state.cart:
-
-            p = item["product"]
-
-            quantity = item["quantity"]
-
-            total = (
-                p["price"] * quantity
-            )
-
-
-            checkout_total += total
-
-
-            st.write(
-                f"{p['icon']} {p['name']} × {quantity} = ₹{total}"
-            )
-
-
-        st.markdown(
-            f"### Total Amount: ₹{checkout_total}"
-        )
-
-
         if st.button(
-            "✅ Place Order",
+            "🛍️ Place Order",
             use_container_width=True
         ):
 
-            if (
-                not customer_name
-                or not phone
-                or not address
-            ):
+            if name and phone and address:
 
-                st.error(
-                    "Please fill all customer details."
+                save_order(
+                    name,
+                    phone,
+                    address,
+                    st.session_state.cart
                 )
-
-
-            else:
-
-                order_id = datetime.now().strftime(
-                    "%Y%m%d%H%M%S"
-                )
-
-
-                for item in st.session_state.cart:
-
-                    p = item["product"]
-
-                    quantity = item["quantity"]
-
-
-                    save_order({
-
-                        "order_id": order_id,
-
-                        "date": datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S"
-                        ),
-
-                        "customer": customer_name,
-
-                        "phone": phone,
-
-                        "address": address,
-
-                        "product": p["name"],
-
-                        "category": p["category"],
-
-                        "price": p["price"],
-
-                        "quantity": quantity,
-
-                        "total": (
-                            p["price"] * quantity
-                        )
-
-                    })
-
 
                 st.session_state.cart = []
 
+                st.session_state.page = "Orders"
 
-                st.success(
-                    f"🎉 Order placed successfully! "
-                    f"Order ID: {order_id}"
+                st.rerun()
+
+            else:
+
+                st.warning(
+                    "Please fill all delivery details."
                 )
 
 
-                st.session_state.page = "Orders"
-
-
-# =========================
+# =========================================================
 # WISHLIST
-# =========================
+# =========================================================
 
 elif st.session_state.page == "Wishlist":
 
-    st.title("❤️ My Wishlist")
-
+    st.subheader("❤️ My Wishlist")
 
     if not st.session_state.wishlist:
 
@@ -894,67 +648,59 @@ elif st.session_state.page == "Wishlist":
             "Your wishlist is empty."
         )
 
-
     else:
 
-        for p in st.session_state.wishlist:
+        for product in st.session_state.wishlist:
 
-            st.markdown(
-                f"""
-                <div class="product-name">
-                    {p["icon"]} {p["name"]}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            c1, c2 = st.columns([1, 3])
 
+            with c1:
 
-            st.markdown(
-                f"""
-                <div class="price">
-                    ₹{p["price"]}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-
-            if st.button(
-                "🛒 Add to Cart",
-                key=f"wishlist_cart_{p['id']}"
-            ):
-
-                st.session_state.cart.append({
-                    "product": p,
-                    "quantity": 1
-                })
-
-                st.success(
-                    "Added to cart!"
+                icon = (
+                    "👗"
+                    if product["category"] == "Sarees"
+                    else "👜"
+                    if product["category"] == "Bags"
+                    else "👚"
                 )
 
+                st.markdown(
+                    f"""
+                    <h1 style="text-align:center">
+                        {icon}
+                    </h1>
+                    """,
+                    unsafe_allow_html=True
+                )
 
-# =========================
+            with c2:
+
+                st.write(
+                    f"### {product['name']}"
+                )
+
+                st.write(
+                    f"₹{product['price']}"
+                )
+
+                st.write(
+                    product["description"]
+                )
+
+            st.divider()
+
+
+# =========================================================
 # ORDERS
-# =========================
+# =========================================================
 
 elif st.session_state.page == "Orders":
 
-    st.title("📦 My Orders")
+    st.subheader("📦 My Orders")
 
+    if os.path.exists(SALES_FILE):
 
-    if not os.path.exists(
-        SALES_FILE
-    ):
-
-        st.info(
-            "No orders placed yet."
-        )
-
-
-    else:
-
-        df = pd.read_csv(
+        orders_df = pd.read_csv(
             SALES_FILE,
             dtype={
                 "Order ID": str,
@@ -962,46 +708,110 @@ elif st.session_state.page == "Orders":
             }
         )
 
+        if not orders_df.empty:
 
-        if df.empty:
+            orders_df["Amount"] = pd.to_numeric(
+                orders_df["Amount"],
+                errors="coerce"
+            ).fillna(0)
+
+            orders_df["Quantity"] = pd.to_numeric(
+                orders_df["Quantity"],
+                errors="coerce"
+            ).fillna(0)
+
+            grouped_orders = orders_df.groupby(
+                "Order ID",
+                sort=False
+            )
+
+            for i, (order_id, group) in enumerate(
+                grouped_orders,
+                1
+            ):
+
+                customer_name = str(
+                    group["Customer Name"].iloc[0]
+                )
+
+                order_date = str(
+                    group["Date"].iloc[0]
+                )
+
+                item_count = int(
+                    group["Quantity"].sum()
+                )
+
+                order_total = group["Amount"].sum()
+
+                st.write(
+                    f"### 📦 Order #{i}"
+                )
+
+                st.write(
+                    f"**Customer:** {customer_name}"
+                )
+
+                st.write(
+                    f"**Order Date:** {order_date}"
+                )
+
+                st.write(
+                    f"**Items:** {item_count}"
+                )
+
+                st.write(
+                    f"**Total:** ₹{order_total:,.0f}"
+                )
+
+                st.write(
+                    "**Status:** ✅ Order Placed"
+                )
+
+                with st.expander(
+                    "View Order Details"
+                ):
+
+                    for _, row in group.iterrows():
+
+                        st.write(
+                            f"• {row['Product']} × "
+                            f"{int(row['Quantity'])} = "
+                            f"₹{float(row['Amount']):,.0f}"
+                        )
+
+                st.divider()
+
+        else:
 
             st.info(
                 "No orders placed yet."
             )
 
+    else:
 
-        else:
-
-            st.success(
-                f"You have placed "
-                f"{df['Order ID'].nunique()} order(s)."
-            )
-
-
-            st.dataframe(
-                df,
-                use_container_width=True,
-                hide_index=True
-            )
-
-
-# =========================
+        st.info(
+            "No orders placed yet."
+        )
+        # =========================================================
 # ANALYTICS
-# =========================
+# =========================================================
 
 elif st.session_state.page == "Analytics":
 
-    st.title("📊 Sales Analytics")
+    st.subheader("📊 Sales Data Analytics")
 
+    st.write(
+        "Python and Pandas are used to analyse "
+        "sales data collected from customer orders."
+    )
 
-    if not os.path.exists(
-        SALES_FILE
-    ):
+    if not os.path.exists(SALES_FILE):
 
         st.info(
-            "No sales data available yet."
+            "No sales data available yet. "
+            "Place an order first."
         )
-
 
     else:
 
@@ -1013,223 +823,174 @@ elif st.session_state.page == "Analytics":
             }
         )
 
-
         if df.empty:
 
             st.info(
-                "No sales data available yet."
+                "No sales records available."
             )
-
 
         else:
 
-            df["Price"] = pd.to_numeric(
-                df["Price"],
-                errors="coerce"
-            )
+            for column in [
+                "Price",
+                "Quantity",
+                "Amount"
+            ]:
 
-            df["Quantity"] = pd.to_numeric(
-                df["Quantity"],
-                errors="coerce"
-            )
+                df[column] = pd.to_numeric(
+                    df[column],
+                    errors="coerce"
+                ).fillna(0)
 
-            df["Total"] = pd.to_numeric(
-                df["Total"],
-                errors="coerce"
-            )
+            total_sales = df["Amount"].sum()
 
-
-            total_sales = df["Total"].sum()
+            total_products = df["Quantity"].sum()
 
             total_orders = df["Order ID"].nunique()
 
-            products_sold = df["Quantity"].sum()
-
             average_order_value = (
-
                 total_sales / total_orders
-
-                if total_orders > 0
-
+                if total_orders
                 else 0
-
             )
 
-
-            best_product = (
-
+            product_quantity = (
                 df.groupby("Product")["Quantity"]
-
                 .sum()
-
-                .idxmax()
-
+                .sort_values(ascending=False)
             )
 
+            product_sales = (
+                df.groupby("Product")["Amount"]
+                .sum()
+                .sort_values(ascending=False)
+            )
 
-            c1, c2, c3, c4, c5 = st.columns(5)
+            category_sales = (
+                df.groupby("Category")["Amount"]
+                .sum()
+                .sort_values(ascending=False)
+            )
 
+            # ---------------- METRICS ----------------
 
-            with c1:
+            st.subheader(
+                "📌 Key Sales Metrics"
+            )
 
-                st.metric(
-                    "💰 Total Sales",
-                    f"₹{total_sales:,.0f}"
-                )
+            a, b, c, d = st.columns(4)
 
+            a.metric(
+                "💰 Total Sales",
+                f"₹{total_sales:,.0f}"
+            )
 
-            with c2:
+            b.metric(
+                "📦 Total Orders",
+                total_orders
+            )
 
-                st.metric(
-                    "📦 Total Orders",
-                    total_orders
-                )
+            c.metric(
+                "🛍️ Products Sold",
+                int(total_products)
+            )
 
-
-            with c3:
-
-                st.metric(
-                    "🛍️ Products Sold",
-                    int(products_sold)
-                )
-
-
-            with c4:
-
-                st.metric(
-                    "🏆 Best Product",
-                    best_product
-                )
-
-
-            with c5:
-
-                st.metric(
-                    "📈 Average Order",
-                    f"₹{average_order_value:,.0f}"
-                )
-
+            d.metric(
+                "⭐ Best-Selling Product",
+                product_quantity.index[0]
+            )
 
             st.divider()
 
+            # ---------------- AVERAGE ORDER ----------------
 
             st.subheader(
-                "🛍️ Product-wise Sales"
+                "💵 Average Order Value"
             )
 
-
-            product_sales = (
-
-                df.groupby("Product")["Total"]
-
-                .sum()
-
-                .sort_values(
-                    ascending=False
-                )
-
+            st.write(
+                f"₹{average_order_value:,.2f}"
             )
 
+            st.divider()
+
+            # ---------------- PRODUCT SALES ----------------
+
+            st.subheader(
+                "🏆 Product-wise Sales"
+            )
 
             st.bar_chart(
                 product_sales
             )
 
+            st.divider()
+
+            # ---------------- CATEGORY SALES ----------------
 
             st.subheader(
                 "📂 Category-wise Sales"
             )
 
-
-            category_sales = (
-
-                df.groupby("Category")["Total"]
-
-                .sum()
-
-                .sort_values(
-                    ascending=False
-                )
-
-            )
-
-
             st.bar_chart(
                 category_sales
             )
 
+            st.divider()
+
+            # ---------------- QUANTITY ----------------
 
             st.subheader(
                 "📦 Quantity Sold by Product"
             )
 
-
-            quantity_sales = (
-
-                df.groupby("Product")["Quantity"]
-
-                .sum()
-
-                .sort_values(
-                    ascending=False
-                )
-
-            )
-
-
             st.bar_chart(
-                quantity_sales
+                product_quantity
             )
 
+            st.divider()
+
+            # ---------------- SALES TREND ----------------
 
             st.subheader(
-                "📈 Sales Trend"
+                "📅 Sales Trend"
             )
-
 
             df["Date"] = pd.to_datetime(
                 df["Date"],
                 errors="coerce"
             )
 
-
             daily_sales = (
-
                 df.groupby(
                     df["Date"].dt.date
-                )["Total"]
-
+                )["Amount"]
                 .sum()
-
             )
-
 
             st.line_chart(
                 daily_sales
             )
 
+            st.divider()
+
+            # ---------------- DATA TABLE ----------------
 
             st.subheader(
                 "📋 Sales Data"
             )
 
-
             st.dataframe(
-                df,
-                use_container_width=True,
-                hide_index=True
+                df.astype({
+                    "Order ID": str,
+                    "Phone": str
+                }),
+                use_container_width=True
             )
-
-
-            csv_data = df.to_csv(
-                index=False
-            ).encode("utf-8")
-
 
             st.download_button(
                 "⬇️ Download Sales Data",
-                data=csv_data,
-                file_name="sales_data.csv",
-                mime="text/csv",
-                use_container_width=True
+                df.to_csv(index=False),
+                "sales_data.csv",
+                "text/csv"
             )
